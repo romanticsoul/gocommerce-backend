@@ -1,0 +1,96 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model categories {
+  category_id        String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name               String
+  description        String?
+  updated_at         DateTime         @default(now()) @db.Timestamptz(6)
+  created_at         DateTime         @default(now()) @db.Timestamptz(6)
+  parent_category_id String?          @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  project_id         String           @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  categories         categories?      @relation("categoriesTocategories", fields: [parent_category_id], references: [category_id], onDelete: Cascade, map: "public_categories_parent_category_id_fkey")
+  other_categories   categories[]     @relation("categoriesTocategories")
+  projects           projects         @relation(fields: [project_id], references: [project_id], onDelete: Cascade, map: "public_categories_project_id_fkey")
+  parameters         parameters[]
+  product_groups     product_groups[]
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model parameter_values {
+  value_id     String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  value        String
+  description  String?
+  created_at   DateTime   @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime   @default(now()) @db.Timestamptz(6)
+  parameter_id String     @db.Uuid
+  product_id   String     @db.Uuid
+  parameters   parameters @relation(fields: [parameter_id], references: [parameter_id], onDelete: Cascade, map: "public_parameter_values_parameter_id_fkey")
+  products     products   @relation(fields: [product_id], references: [product_id], onDelete: Cascade, map: "public_parameter_values_product_id_fkey")
+}
+
+model parameters {
+  parameter_id                String                        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                        String
+  description                 String?
+  is_inherited                Boolean                       @default(true)
+  is_technical                Boolean                       @default(false)
+  only_one_value              Boolean                       @default(false)
+  only_prepared_values        Boolean                       @default(false)
+  created_at                  DateTime                      @default(now()) @db.Timestamptz(6)
+  updated_at                  DateTime                      @default(now()) @db.Timestamptz(6)
+  category_id                 String                        @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  parameter_values            parameter_values[]
+  categories                  categories                    @relation(fields: [category_id], references: [category_id], onDelete: Cascade, map: "public_parameters_category_id_fkey")
+  predefined_parameter_values predefined_parameter_values[]
+}
+
+model predefined_parameter_values {
+  predefined_value_id String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  value               String
+  description         String?
+  created_at          DateTime   @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime   @default(now()) @db.Timestamptz(6)
+  parameter_id        String     @db.Uuid
+  parameters          parameters @relation(fields: [parameter_id], references: [parameter_id], onDelete: Cascade, map: "public_predefined_parameter_values_parameter_id_fkey")
+}
+
+model product_groups {
+  product_group_id String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  category_id      String     @db.Uuid
+  categories       categories @relation(fields: [category_id], references: [category_id], onDelete: Cascade, map: "public_product_groups_category_id_fkey")
+  products         products[]
+}
+
+model products {
+  product_id          String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                String
+  description         String?
+  price               BigInt
+  tax_rate            Int                @db.SmallInt
+  discount_percentage Int                @db.SmallInt
+  is_disabled         Boolean            @default(false)
+  created_at          DateTime           @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime           @default(now()) @db.Timestamptz(6)
+  product_group_id    String             @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  parameter_values    parameter_values[]
+  product_groups      product_groups     @relation(fields: [product_group_id], references: [product_group_id], onDelete: NoAction, onUpdate: NoAction, map: "public_products_product_group_id_fkey")
+}
+
+model projects {
+  project_id  String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String
+  unique_name String       @unique
+  description String?
+  logo_url    String?
+  updated_at  DateTime     @default(now()) @db.Timestamptz(6)
+  created_at  DateTime     @default(now()) @db.Timestamptz(6)
+  categories  categories[]
+}

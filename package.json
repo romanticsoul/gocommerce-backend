@@ -1,0 +1,29 @@
+{
+  "scripts": {
+    "dev": "bun run --hot src/index.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.12.1",
+    "drizzle-orm": "^0.30.8",
+    "hono": "^4.2.5",
+    "postgres": "^3.4.4"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.2.0",
+    "@hono/eslint-config": "^0.0.4",
+    "@types/bun": "latest",
+    "drizzle-kit": "^0.20.17",
+    "eslint": "^9.2.0",
+    "eslint-config-prettier": "^9.1.0",
+    "globals": "^15.2.0",
+    "prettier": "3.2.5",
+    "prisma": "^5.12.1",
+    "typescript-eslint": "^7.8.0"
+  },
+  "name": "gocommerce-backend",
+  "module": "index.ts",
+  "type": "module",
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
